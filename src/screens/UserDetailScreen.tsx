@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import {
@@ -29,10 +29,13 @@ export default function UserDetailScreen() {
 
   const [user, setUser] = useState<DBUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    loadUser();
-  }, []);
+    if (isFocused) {
+      loadUser();
+    }
+  }, [isFocused]);
 
   const loadUser = async () => {
     try {

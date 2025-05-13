@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useContext, useEffect, useState } from 'react';
 import {
@@ -29,9 +29,13 @@ export default function UserListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { logout, email: loggedInEmail } = useContext(AuthContext);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const isFocused = useIsFocused();
+
+    useEffect(() => {
+      if (isFocused) {
+        loadData(); 
+      }
+    }, [isFocused]);
 
   const loadData = async () => {
     const localUsers = await getUsers();
