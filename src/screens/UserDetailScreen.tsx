@@ -10,9 +10,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import ScreenContainer from '../components/ScreenContainer'; // ✅
+import ScreenContainer from '../components/ScreenContainer';
+import { User as DBUser, deleteUser, getUserById } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import api from '../services/api';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserDetail'>;
 
@@ -27,23 +27,19 @@ export default function UserDetailScreen() {
   const route = useRoute<RouteProp>();
   const { userId } = route.params;
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<DBUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUser();
+    loadUser();
   }, []);
 
-  const fetchUser = async () => {
+  const loadUser = async () => {
     try {
-      const response = await api.get(`/users/${userId}`);
-      const simulatedUser = {
-        ...response.data.data,
-        dni: '75872323', // Dato ficticio
-      };
-      setUser(simulatedUser);
+      const data = await getUserById(userId);
+      setUser(data || null);
     } catch (error: any) {
-      console.error(error.response?.data || error.message);
+      console.error('Error al cargar usuario:', error.message);
       Alert.alert('Error', 'No se pudo cargar el usuario.');
     } finally {
       setLoading(false);
@@ -56,9 +52,14 @@ export default function UserDetailScreen() {
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: () => {
-          Alert.alert('Eliminado', 'El usuario fue eliminado.');
-          navigation.goBack();
+        onPress: async () => {
+          try {
+            await deleteUser(userId);
+            Alert.alert('Eliminado', 'El usuario fue eliminado.');
+            navigation.goBack();
+          } catch (error: any) {
+            Alert.alert('Error', 'No se pudo eliminar el usuario.');
+          }
         },
       },
     ]);
@@ -66,10 +67,18 @@ export default function UserDetailScreen() {
 
   if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
+  if (!user) {
+    return (
+      <ScreenContainer style={styles.container}>
+        <Text style={{ color: '#888' }}>Usuario no encontrado.</Text>
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer style={styles.container}>
       <Image source={{ uri: user.avatar }} style={styles.avatar} />
-      <Text style={styles.name}>{user.first_name} {user.last_name}</Text>
+      <Text style={styles.name}>{user.name}</Text>
       <Text style={styles.label}>Correo:</Text>
       <Text style={styles.info}>{user.email}</Text>
       <Text style={styles.label}>DNI:</Text>
@@ -85,7 +94,7 @@ export default function UserDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center' }, // ya no necesitas flex: 1 porque ScreenContainer lo tiene
+  container: { alignItems: 'center' },
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 16 },
   name: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
   label: { fontSize: 14, marginTop: 8, color: '#888' },

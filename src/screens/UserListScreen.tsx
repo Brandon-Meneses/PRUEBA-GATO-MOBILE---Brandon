@@ -12,68 +12,81 @@ import {
 } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
+import {
+  User as DBUser,
+  getUsers,
+  insertUser,
+  toggleUserStatus
+} from '../database/dbService';
 import { UserStackParamList } from '../navigation/UserStack';
 import api from '../services/api';
 
-
-
 type NavigationProp = NativeStackNavigationProp<UserStackParamList, 'UserList'>;
 
-interface User {
-  id: number;
-  email: string;
-  first_name: string;
-  last_name: string;
-  avatar: string;
-  active: boolean;
-}
-
 export default function UserListScreen() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<DBUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<DBUser | null>(null);
   const navigation = useNavigation<NavigationProp>();
   const { logout, email: loggedInEmail } = useContext(AuthContext);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetchUsers();
+    loadData();
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get('/users?page=1');
-      const dataWithStatus = response.data.data.map((user: any) => ({
-        ...user,
-        active: true,
-      }));
-      setUsers(dataWithStatus);
-      const matchedUser = dataWithStatus.find((u: User) => u.email === loggedInEmail);
-      if (matchedUser) setCurrentUser(matchedUser);
-    } catch (error: any) {
-      console.error('Error al obtener usuarios:', error.response?.data || error.message);
+  const loadData = async () => {
+    const localUsers = await getUsers();
+
+    if (localUsers.length === 0) {
+      // Primer inicio, cargar desde API y guardar en BD
+      try {
+        const response = await api.get('/users?page=1');
+        const dataFromAPI = response.data.data;
+
+        for (const user of dataFromAPI) {
+          const userToSave: DBUser = {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            avatar: user.avatar,
+            dni: '00000000',
+            active: true,
+          };
+          await insertUser(userToSave);
+        }
+
+        const savedUsers = await getUsers();
+        setUsers(savedUsers);
+        const matched = savedUsers.find(u => u.email === loggedInEmail);
+        if (matched) setCurrentUser(matched);
+      } catch (error: any) {
+        console.error('Error al obtener usuarios de la API:', error.message);
+      }
+    } else {
+      // Ya hay datos locales
+      setUsers(localUsers);
+      const matched = localUsers.find(u => u.email === loggedInEmail);
+      if (matched) setCurrentUser(matched);
     }
   };
 
-  const toggleActive = (id: number) => {
-    setUsers(prev =>
-      prev.map(user =>
-        user.id === id ? { ...user, active: !user.active } : user
-      )
-    );
+  const handleToggleActive = async (id: number, currentStatus: boolean) => {
+    await toggleUserStatus(id, !currentStatus);
+    const updated = await getUsers();
+    setUsers(updated);
   };
 
-  const renderItem = ({ item }: { item: User }) => (
+  const renderItem = ({ item }: { item: DBUser }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
+      onPress={() => navigation.navigate('UserDetail', { userId: item.id! })}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.info}>
-        <Text style={styles.name}>
-          {item.first_name} {item.last_name}
-        </Text>
-        <Text style={styles.email}>{item.email}</Text>
+              <Text style={styles.name}>{item.first_name} {item.last_name}</Text>
+              <Text style={styles.email}>{item.email}</Text>
       </View>
-      <Switch value={item.active} onValueChange={() => toggleActive(item.id)} />
+      <Switch value={item.active} onValueChange={() => handleToggleActive(item.id!, item.active)} />
     </TouchableOpacity>
   );
 
@@ -87,19 +100,14 @@ export default function UserListScreen() {
 
       {currentUser && (
         <View style={styles.header}>
-          <Text style={styles.greeting}>
-            Hola, {currentUser.first_name}!
-          </Text>
-          <Image
-            source={{ uri: currentUser.avatar }}
-            style={styles.profileImage}
-          />
+          <Text style={styles.greeting}>Hola, {currentUser.first_name}!</Text>
+          <Image source={{ uri: currentUser.avatar }} style={styles.profileImage} />
         </View>
       )}
 
       <FlatList
         data={users}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.id!.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingVertical: 12 }}
       />

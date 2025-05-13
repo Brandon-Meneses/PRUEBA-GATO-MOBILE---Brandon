@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
+import { getUserByEmail, insertUser } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import api from '../services/api';
 
@@ -31,10 +32,56 @@ export default function LoginScreen() {
     try {
       const response = await api.post('/login', { email, password });
       const token = response.data.token;
-      await login(token, email);
+  
+      let localUser = await getUserByEmail(email);
+  
+      if (!localUser) {
+        const apiResponse = await api.get('/users?page=1');
+        const matchedUser = apiResponse.data.data.find((u: any) => u.email === email);
+  
+        if (!matchedUser) {
+          Alert.alert('Error', 'No se encontró el usuario en la API.');
+          return;
+        }
+  
+        await insertUser({
+          id: matchedUser.id,
+          first_name: matchedUser.first_name,
+          last_name: matchedUser.last_name,
+          email: matchedUser.email,
+          dni: matchedUser.dni,
+          active: matchedUser.active,
+          avatar: matchedUser.avatar || '',
+        });
+  
+        localUser = await getUserByEmail(email);
+      }
+  
+      if (!localUser) {
+        Alert.alert('Error', 'No se encontró el usuario local.');
+        return;
+      }
+  
+      await login(token, email, {
+        id: localUser.id ?? 0,
+        name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
+        avatar: localUser.avatar ?? '',
+      });
+  
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Error desconocido';
-      Alert.alert('Error', message);
+      console.error('Login error:', error.response?.data || error.message);
+  
+      const localUser = await getUserByEmail(email);
+      if (localUser) {
+        await login('offline-token', email, {
+          id: localUser.id ?? 0,
+          name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
+          avatar: localUser.avatar ?? '',
+        });
+      } else {
+        const message = error.response?.data?.error || 'Error desconocido';
+        Alert.alert('Error', message);
+      }
     }
   };
 

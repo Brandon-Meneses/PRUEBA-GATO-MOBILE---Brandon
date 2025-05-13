@@ -11,9 +11,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import ScreenScrollContainer from '../components/ScreenScrollContainer';
+import { getUserById, insertUser, updateUser } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserForm'>;
@@ -27,9 +28,11 @@ type RouteProp = {
 export default function UserFormScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProp>();
-  const isEdit = !!route.params?.userId;
+  const userId = route.params?.userId;
+  const isEdit = !!userId;
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
@@ -39,19 +42,24 @@ export default function UserFormScreen() {
   const [secureRepeat, setSecureRepeat] = useState(true);
 
   useEffect(() => {
-    if (isEdit) {
-      setName('Daniela Carrasco Nolazco');
-      setEmail('desarrollo2@gmail.com');
-      setDni('73798984');
-      setPhoto('https://randomuser.me/api/portraits/women/44.jpg');
+    if (isEdit && userId) {
+      getUserById(userId).then(user => {
+        if (user) {
+          setFirstName(user.first_name);
+          setLastName(user.last_name);
+          setEmail(user.email);
+          setDni(user.dni);
+          setPhoto(user.avatar ?? 'https://via.placeholder.com/100');
+        }
+      });
     }
-  }, []);
+  }, [isEdit]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       quality: 1,
-      mediaTypes: ['images']
+      mediaTypes: ['images'],
     });
 
     if (!result.canceled) {
@@ -59,8 +67,8 @@ export default function UserFormScreen() {
     }
   };
 
-  const handleSave = () => {
-    if (!name || !email || !dni) {
+  const handleSave = async () => {
+    if (!firstName || !lastName || !email || !dni) {
       Alert.alert('Error', 'Todos los campos son obligatorios.');
       return;
     }
@@ -69,8 +77,28 @@ export default function UserFormScreen() {
       return;
     }
 
-    Alert.alert('Éxito', isEdit ? 'Usuario actualizado' : 'Usuario creado');
-    navigation.goBack();
+    const newUser = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      dni,
+      avatar: photo || 'https://via.placeholder.com/100',
+      active: true,
+    };
+    
+    try {
+      if (isEdit && userId) {
+        await updateUser({ ...newUser, id: userId });
+        Alert.alert('Actualizado', 'Usuario actualizado correctamente');
+      } else {
+        await insertUser(newUser);
+        Alert.alert('Creado', 'Usuario creado correctamente');
+      }
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error al guardar usuario:', error);
+      Alert.alert('Error', 'Ocurrió un error al guardar.');
+    }
   };
 
   return (
@@ -87,43 +115,12 @@ export default function UserFormScreen() {
         </TouchableOpacity>
       </View>
 
-      <CustomInput
-        label="Nombre"
-        icon="person"
-        value={name}
-        onChangeText={setName}
-      />
-      <CustomInput
-        label="Correo"
-        icon="mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <CustomInput
-        label="DNI"
-        icon="card"
-        value={dni}
-        onChangeText={setDni}
-        keyboardType="numeric"
-      />
-      <CustomInput
-        label="Contraseña"
-        icon="eye"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry={secureEntry}
-        toggleSecure={() => setSecureEntry(!secureEntry)}
-      />
-      <CustomInput
-        label="Repetir Contraseña"
-        icon="eye"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry={secureRepeat}
-        toggleSecure={() => setSecureRepeat(!secureRepeat)}
-      />
+      <CustomInput label="Nombres" icon="person" value={firstName} onChangeText={setFirstName} />
+      <CustomInput label="Apellidos" icon="person" value={lastName} onChangeText={setLastName} />
+      <CustomInput label="Correo" icon="mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+      <CustomInput label="DNI" icon="card" value={dni} onChangeText={setDni} keyboardType="numeric" />
+      <CustomInput label="Contraseña" icon="eye" value={password} onChangeText={setPassword} secureTextEntry={secureEntry} toggleSecure={() => setSecureEntry(!secureEntry)} />
+      <CustomInput label="Repetir Contraseña" icon="eye" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={secureRepeat} toggleSecure={() => setSecureRepeat(!secureRepeat)} />
 
       <View style={{ marginTop: 16 }}>
         <Button title="Guardar" onPress={handleSave} color="#5E17EB" />
@@ -132,30 +129,15 @@ export default function UserFormScreen() {
   );
 }
 
-function CustomInput({
-  label,
-  icon,
-  secureTextEntry,
-  toggleSecure,
-  ...props
-}: any) {
+function CustomInput({ label, icon, secureTextEntry, toggleSecure, ...props }: any) {
   return (
     <View style={{ marginBottom: 12 }}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder={label}
-          secureTextEntry={secureTextEntry}
-          {...props}
-        />
+        <TextInput style={styles.input} placeholder={label} secureTextEntry={secureTextEntry} {...props} />
         {toggleSecure ? (
           <TouchableOpacity onPress={toggleSecure}>
-            <Ionicons
-              name={secureTextEntry ? 'eye-off' : 'eye'}
-              size={20}
-              color="#999"
-            />
+            <Ionicons name={secureTextEntry ? 'eye-off' : 'eye'} size={20} color="#999" />
           </TouchableOpacity>
         ) : (
           <Ionicons name={icon} size={20} color="#999" />
