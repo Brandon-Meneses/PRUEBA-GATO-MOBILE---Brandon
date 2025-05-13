@@ -29,10 +29,24 @@ export const insertUser = async (user: User): Promise<void> => {
   }
 };
 
+type RawUser = {
+  id?: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  dni: string;
+  active: number; 
+  avatar?: string;
+};
+
 export const getUsers = async (): Promise<User[]> => {
   try {
-    const result = await db.getAllAsync<User>(`SELECT * FROM users`);
-    return result;
+    const result = await db.getAllAsync<RawUser>(`SELECT * FROM users`);
+
+    return result.map(user => ({
+      ...user,
+      active: user.active === 1, 
+    }));
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
     return [];
@@ -80,10 +94,18 @@ export const getUserById = async (id: number): Promise<User | null> => {
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
-    const result = await db.getFirstAsync<User>(`SELECT * FROM users WHERE email = ?`, [email]);
-    return result || null;
+    const raw = await db.getFirstAsync<RawUser>(`SELECT * FROM users WHERE email = ?`, [email]);
+
+    if (!raw) return null;
+
+    const user: User = {
+      ...raw,
+      active: raw.active === 1, 
+    };
+
+    return user;
   } catch (error) {
     console.error('Error al obtener usuario por email:', error);
     return null;
   }
-}
+};
