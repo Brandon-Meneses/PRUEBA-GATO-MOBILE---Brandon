@@ -2,13 +2,13 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Button,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput
+  Alert,
+  Button,
+  StyleSheet,
+  Text,
+  TextInput
 } from 'react-native';
+import ScreenScrollContainer from '../components/ScreenScrollContainer'; // ✅ Importar
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserForm'>;
@@ -33,8 +33,6 @@ export default function UserFormScreen() {
 
   useEffect(() => {
     if (isEdit) {
-      // Simulación: precargar datos de usuario existente (mock)
-      // En un caso real, buscarías los datos desde la API o estado global
       setName('Daniela Carrasco Nolazco');
       setEmail('desarrollo2@gmail.com');
       setDni('73798984');
@@ -52,13 +50,12 @@ export default function UserFormScreen() {
       return;
     }
 
-    // Simulación de guardar
     Alert.alert('Éxito', isEdit ? 'Usuario actualizado' : 'Usuario creado');
     navigation.goBack();
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScreenScrollContainer>
       <Text style={styles.label}>Nombre</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} />
 
@@ -96,15 +93,11 @@ export default function UserFormScreen() {
       />
 
       <Button title="Guardar" onPress={handleSave} />
-    </ScrollView>
+    </ScreenScrollContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingBottom: 40,
-  },
   label: {
     fontSize: 14,
     marginTop: 12,

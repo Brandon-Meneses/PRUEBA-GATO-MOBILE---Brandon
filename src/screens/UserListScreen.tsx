@@ -10,9 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
 import { UserStackParamList } from '../navigation/UserStack';
 import api from '../services/api';
+
 
 
 type NavigationProp = NativeStackNavigationProp<UserStackParamList, 'UserList'>;
@@ -30,7 +32,6 @@ export default function UserListScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const navigation = useNavigation<NavigationProp>();
   const { logout } = useContext(AuthContext);
-
 
   useEffect(() => {
     fetchUsers();
@@ -74,25 +75,36 @@ export default function UserListScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <View style={styles.logoutContainer}>
         <TouchableOpacity onPress={logout}>
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
-  
+
       <FlatList
         data={users}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingVertical: 12 }}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16 },
+  logoutContainer: {
+    alignItems: 'flex-end',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  logoutText: {
+    color: '#5E17EB',
+    fontWeight: '600',
+    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -112,18 +124,4 @@ const styles = StyleSheet.create({
   },
   name: { fontSize: 16, fontWeight: '600' },
   email: { fontSize: 14, color: '#666' },
-
-  logoutContainer: {
-    alignItems: 'flex-end',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  
-  logoutText: {
-    color: '#5E17EB',
-    fontWeight: '600',
-    fontSize: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
 });

@@ -10,6 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer'; // ✅
 import { RootStackParamList } from '../navigation/AppNavigator';
 import api from '../services/api';
 
@@ -56,7 +57,6 @@ export default function UserDetailScreen() {
         text: 'Eliminar',
         style: 'destructive',
         onPress: () => {
-          // Simulación de eliminación
           Alert.alert('Eliminado', 'El usuario fue eliminado.');
           navigation.goBack();
         },
@@ -67,7 +67,7 @@ export default function UserDetailScreen() {
   if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <Image source={{ uri: user.avatar }} style={styles.avatar} />
       <Text style={styles.name}>{user.first_name} {user.last_name}</Text>
       <Text style={styles.label}>Correo:</Text>
@@ -80,12 +80,12 @@ export default function UserDetailScreen() {
         <View style={{ height: 12 }} />
         <Button title="Eliminar" color="red" onPress={handleDelete} />
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, alignItems: 'center' },
+  container: { alignItems: 'center' }, // ya no necesitas flex: 1 porque ScreenContainer lo tiene
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 16 },
   name: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
   label: { fontSize: 14, marginTop: 8, color: '#888' },
