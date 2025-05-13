@@ -21,10 +21,6 @@ export default function LoginScreen() {
       const response = await api.post('/login', { email, password });
       const token = response.data.token;
       await login(token);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'UserList' }],
-      });
     } catch (error: any) {
       console.log('Login error:', error.response?.data || error.message);
       const message = error.response?.data?.error || 'Error desconocido';

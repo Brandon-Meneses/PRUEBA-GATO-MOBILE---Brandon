@@ -11,11 +11,11 @@ import {
   View,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { UserStackParamList } from '../navigation/UserStack';
 import api from '../services/api';
 
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'UserList'>;
+type NavigationProp = NativeStackNavigationProp<UserStackParamList, 'UserList'>;
 
 interface User {
   id: number;
