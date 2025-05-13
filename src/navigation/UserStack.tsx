@@ -14,10 +14,34 @@ const Stack = createNativeStackNavigator<UserStackParamList>();
 
 export default function UserStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="UserList" component={UserListScreen} />
-      <Stack.Screen name="UserDetail" component={UserDetailScreen} />
-      <Stack.Screen name="UserForm" component={UserFormScreen} />
+    <Stack.Navigator screenOptions={{
+      headerTintColor: '#5E17EB',
+      headerTitleAlign: 'center',
+      headerStyle: {
+        backgroundColor: '#fff',
+      },
+      headerTitleStyle: {
+        fontWeight: '600',
+        fontSize: 18,
+      },
+    }}>
+      <Stack.Screen
+        name="UserList"
+        component={UserListScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="UserDetail"
+        component={UserDetailScreen}
+        options={{ headerShown: true, title: 'Detalle del usuario' }}
+      />
+
+      <Stack.Screen
+        name="UserForm"
+        component={UserFormScreen}
+        options={{ headerShown: true, title: 'Formulario' }}
+      />
     </Stack.Navigator>
   );
 }
