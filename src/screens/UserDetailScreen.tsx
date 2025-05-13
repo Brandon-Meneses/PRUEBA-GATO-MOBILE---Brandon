@@ -78,7 +78,7 @@ export default function UserDetailScreen() {
   return (
     <ScreenContainer style={styles.container}>
       <Image source={{ uri: user.avatar }} style={styles.avatar} />
-      <Text style={styles.name}>{user.name}</Text>
+      <Text style={styles.name}>{user.first_name + ' ' + user.last_name}</Text>
       <Text style={styles.label}>Correo:</Text>
       <Text style={styles.info}>{user.email}</Text>
       <Text style={styles.label}>DNI:</Text>

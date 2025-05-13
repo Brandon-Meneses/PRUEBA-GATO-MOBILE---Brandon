@@ -58,8 +58,16 @@ export const updateUser = async (user: User): Promise<void> => {
 
   try {
     await db.runAsync(
-      `UPDATE users SET name = ?, email = ?, dni = ?, active = ?, avatar = ? WHERE id = ?`,
-      [user.first_name, user.last_name, user.email, user.dni, user.active ? 1 : 0, user.avatar || '', user.id]
+      `UPDATE users SET first_name = ?, last_name = ?, email = ?, dni = ?, active = ?, avatar = ? WHERE id = ?`,
+      [
+        user.first_name,
+        user.last_name,
+        user.email,
+        user.dni,
+        user.active ? 1 : 0,
+        user.avatar || '',
+        user.id
+      ]
     );
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
