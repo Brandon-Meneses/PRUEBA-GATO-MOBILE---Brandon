@@ -1,15 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useContext, useState } from 'react';
 import {
   Alert,
-  Button,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
@@ -22,6 +24,7 @@ export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
@@ -30,7 +33,6 @@ export default function LoginScreen() {
       const token = response.data.token;
       await login(token);
     } catch (error: any) {
-      console.log('Login error:', error.response?.data || error.message);
       const message = error.response?.data?.error || 'Error desconocido';
       Alert.alert('Error', message);
     }
@@ -39,34 +41,58 @@ export default function LoginScreen() {
   return (
     <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={64} // Ajusta si tienes header o tab
+        style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Iniciar Sesión</Text>
+          <Text style={styles.subtitle}>
+            Nos alegra verte de vuelta. Ingresa con tu cuenta para continuar tu experiencia.
+          </Text>
 
-          <TextInput
-            placeholder="Correo electrónico"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-          />
+          {/* Input Correo */}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Correo"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              placeholderTextColor="#999"
+            />
+            <Ionicons name="mail-outline" size={20} color="#999" style={styles.iconRight} />
+          </View>
 
-          <TextInput
-            placeholder="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-          />
+          {/* Input Contraseña */}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              placeholderTextColor="#999"
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.iconRight}>
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
 
-          <Button title="Ingresar" onPress={handleLogin} />
+          <TouchableOpacity style={styles.forgotContainer}>
+            <Text style={styles.forgotText}>¿Olvide mi contraseña?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Ingresar</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.registerText}>
+            ¿Aún no tienes una cuenta? <Text style={styles.registerLink}>Regístrate</Text>
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -75,22 +101,69 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 32,
+    padding: 24,
     flexGrow: 1,
     justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'left',
+    color: '#1E1E1E',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 24,
+  },
+  inputWrapper: {
+    position: 'relative',
     marginBottom: 16,
-    alignSelf: 'center',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    marginBottom: 12,
-    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 14,
+    paddingRight: 40,
+    fontSize: 14,
+    color: '#000',
+  },
+  iconRight: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
+  forgotContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 24,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: '#5E17EB',
+    fontWeight: '500',
+  },
+  loginButton: {
+    backgroundColor: '#5E17EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  registerText: {
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#374151',
+  },
+  registerLink: {
+    color: '#5E17EB',
+    fontWeight: '600',
   },
 });
