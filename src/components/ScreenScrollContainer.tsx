@@ -1,22 +1,25 @@
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ScreenScrollContainer({ children }: { children: React.ReactNode }) {
+  const backgroundColor = useThemeColor({}, 'background');
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior="padding" 
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 24} 
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 24}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent]}
           keyboardShouldPersistTaps="handled"
         >
           {children}
@@ -29,7 +32,6 @@ export default function ScreenScrollContainer({ children }: { children: React.Re
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,

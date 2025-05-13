@@ -7,13 +7,15 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
-  TouchableOpacity,
-  View
+  TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { AuthContext } from '../context/AuthContext';
 import { getUserByEmail, insertUser } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -28,17 +30,21 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useContext(AuthContext);
 
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const inputBg = useThemeColor({}, 'background');
+
   const handleLogin = async () => {
     try {
       const response = await api.post('/login', { email, password });
       const token = response.data.token;
-  
+
       let localUser = await getUserByEmail(email);
-  
+
       if (!localUser) {
         const apiResponse = await api.get('/users?page=1');
         const matchedUser = apiResponse.data.data.find((u: any) => u.email === email);
-  
+
         if (!matchedUser) {
           Toast.show({
             type: 'error',
@@ -47,20 +53,20 @@ export default function LoginScreen() {
           });
           return;
         }
-  
+
         await insertUser({
           id: matchedUser.id,
           first_name: matchedUser.first_name,
           last_name: matchedUser.last_name,
           email: matchedUser.email,
-          dni: matchedUser.dni,
-          active: matchedUser.active,
+          dni: '00000000',
+          active: true,
           avatar: matchedUser.avatar || '',
         });
-  
+
         localUser = await getUserByEmail(email);
       }
-  
+
       if (!localUser) {
         Toast.show({
           type: 'error',
@@ -69,29 +75,29 @@ export default function LoginScreen() {
         });
         return;
       }
-  
+
       await login(token, email, {
         id: localUser.id ?? 0,
         name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
         avatar: localUser.avatar ?? '',
       });
-  
+
       Toast.show({
         type: 'success',
         text1: 'Bienvenido',
         text2: `${localUser.first_name} ${localUser.last_name}`,
       });
-  
+
     } catch (error: any) {
       const localUser = await getUserByEmail(email);
-  
+
       if (localUser) {
         await login('offline-token', email, {
           id: localUser.id ?? 0,
           name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
           avatar: localUser.avatar ?? '',
         });
-  
+
         Toast.show({
           type: 'success',
           text1: 'Modo sin conexión',
@@ -109,7 +115,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1 }}>
+    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -118,51 +124,51 @@ export default function LoginScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Iniciar Sesión</Text>
-          <Text style={styles.subtitle}>
+          <ThemedText type="title" style={styles.title}>Iniciar Sesión</ThemedText>
+          <ThemedText style={styles.subtitle}>
             Nos alegra verte de vuelta. Ingresa con tu cuenta para continuar tu experiencia.
-          </Text>
+          </ThemedText>
 
           {/* Input Correo */}
-          <View style={styles.inputWrapper}>
+          <ThemedView style={styles.inputWrapper}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: inputBg, color: textColor }]}
               placeholder="Correo"
+              placeholderTextColor="#999"
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
-              placeholderTextColor="#999"
             />
             <Ionicons name="mail-outline" size={20} color="#999" style={styles.iconRight} />
-          </View>
+          </ThemedView>
 
           {/* Input Contraseña */}
-          <View style={styles.inputWrapper}>
+          <ThemedView style={styles.inputWrapper}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: inputBg, color: textColor }]}
               placeholder="Contraseña"
+              placeholderTextColor="#999"
               secureTextEntry={!showPassword}
               value={password}
               onChangeText={setPassword}
-              placeholderTextColor="#999"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.iconRight}>
               <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#999" />
             </TouchableOpacity>
-          </View>
+          </ThemedView>
 
           <TouchableOpacity style={styles.forgotContainer}>
-            <Text style={styles.forgotText}>¿Olvide mi contraseña?</Text>
+            <ThemedText type="link">¿Olvidé mi contraseña?</ThemedText>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Ingresar</Text>
+            <ThemedText style={styles.loginButtonText}>Ingresar</ThemedText>
           </TouchableOpacity>
 
-          <Text style={styles.registerText}>
-            ¿Aún no tienes una cuenta? <Text style={styles.registerLink}>Regístrate</Text>
-          </Text>
+          <ThemedText style={styles.registerText}>
+            ¿Aún no tienes una cuenta? <ThemedText style={styles.registerLink}>Regístrate</ThemedText>
+          </ThemedText>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -174,18 +180,13 @@ const styles = StyleSheet.create({
     padding: 24,
     flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'left',
-    color: '#1E1E1E',
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
     marginBottom: 24,
   },
   inputWrapper: {
@@ -193,12 +194,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   input: {
-    backgroundColor: '#F3F4F6',
     borderRadius: 12,
     padding: 14,
     paddingRight: 40,
     fontSize: 14,
-    color: '#000',
   },
   iconRight: {
     position: 'absolute',
@@ -209,11 +208,6 @@ const styles = StyleSheet.create({
   forgotContainer: {
     alignItems: 'flex-end',
     marginBottom: 24,
-  },
-  forgotText: {
-    fontSize: 13,
-    color: '#5E17EB',
-    fontWeight: '500',
   },
   loginButton: {
     backgroundColor: '#5E17EB',
@@ -230,7 +224,6 @@ const styles = StyleSheet.create({
   registerText: {
     textAlign: 'center',
     fontSize: 13,
-    color: '#374151',
   },
   registerLink: {
     color: '#5E17EB',

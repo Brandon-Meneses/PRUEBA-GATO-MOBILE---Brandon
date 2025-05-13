@@ -6,10 +6,12 @@ import {
   Image,
   StyleSheet,
   Switch,
-  Text,
   TouchableOpacity,
-  View,
 } from 'react-native';
+
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
 import {
@@ -31,48 +33,47 @@ export default function UserListScreen() {
   const { logout, email: loggedInEmail } = useContext(AuthContext);
 
   const isFocused = useIsFocused();
+  const cardBg = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const subtitleColor = useThemeColor({}, 'icon');
 
-    useEffect(() => {
-      if (isFocused) {
-        loadData(); 
-      }
-    }, [isFocused]);
+  useEffect(() => {
+    if (isFocused) loadData();
+  }, [isFocused]);
 
-    const loadData = async () => {
-      try {
-        const response = await api.get('/users?page=1');
-        const apiUsers = response.data.data;
-    
-        for (const user of apiUsers) {
-          const exists = await getUserByEmail(user.email);
-          if (!exists) {
-            await insertUser({
-              id: user.id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email: user.email,
-              avatar: user.avatar,
-              dni: '00000000',
-              active: true,
-            });
-          }
+  const loadData = async () => {
+    try {
+      const response = await api.get('/users?page=1');
+      const apiUsers = response.data.data;
+
+      for (const user of apiUsers) {
+        const exists = await getUserByEmail(user.email);
+        if (!exists) {
+          await insertUser({
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            avatar: user.avatar,
+            dni: '00000000',
+            active: true,
+          });
         }
-    
-        const updatedUsers = await getUsers();
-        setUsers(updatedUsers);
-    
-        const matched = updatedUsers.find(u => u.email === loggedInEmail);
-        if (matched) setCurrentUser(matched);
-      } catch (error: any) {
-        console.error('Error al obtener usuarios de la API:', error.message);
-    
-        // Si falla, usa la base local
-        const fallbackUsers = await getUsers();
-        setUsers(fallbackUsers);
-        const matched = fallbackUsers.find(u => u.email === loggedInEmail);
-        if (matched) setCurrentUser(matched);
       }
-    };
+
+      const updatedUsers = await getUsers();
+      setUsers(updatedUsers);
+
+      const matched = updatedUsers.find(u => u.email === loggedInEmail);
+      if (matched) setCurrentUser(matched);
+    } catch (error: any) {
+      console.error('Error al obtener usuarios de la API:', error.message);
+      const fallbackUsers = await getUsers();
+      setUsers(fallbackUsers);
+      const matched = fallbackUsers.find(u => u.email === loggedInEmail);
+      if (matched) setCurrentUser(matched);
+    }
+  };
 
   const handleToggleActive = async (id: number, currentStatus: boolean) => {
     await toggleUserStatus(id, !currentStatus);
@@ -82,33 +83,46 @@ export default function UserListScreen() {
 
   const renderItem = ({ item }: { item: DBUser }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: cardBg }]}
       onPress={() => navigation.navigate('UserDetail', { userId: item.id! })}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      <View style={styles.info}>
-              <Text style={styles.name}>{item.first_name} {item.last_name}</Text>
-              <Text style={styles.email}>{item.email}</Text>
-      </View>
-      <Switch value={item.active} onValueChange={() => handleToggleActive(item.id!, item.active)} />
+      <ThemedView style={styles.info}>
+        <ThemedText style={[styles.name, { color: textColor }]}>
+          {item.first_name} {item.last_name}
+        </ThemedText>
+        <ThemedText style={[styles.email, { color: subtitleColor }]}>
+          {item.email}
+        </ThemedText>
+      </ThemedView>
+      <Switch
+        value={item.active}
+        onValueChange={() => handleToggleActive(item.id!, item.active)}
+      />
     </TouchableOpacity>
   );
 
   return (
     <ScreenContainer>
-      <View style={styles.logoutContainer}>
+      <ThemedView style={styles.logoutContainer}>
         <TouchableOpacity onPress={logout}>
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          <ThemedText style={styles.logoutText}>Cerrar sesión</ThemedText>
         </TouchableOpacity>
-      </View>
+      </ThemedView>
 
       {currentUser && (
-        <View style={styles.header}>
-          <Text style={styles.greeting}>Hola, {currentUser.first_name}!</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('UserDetail', { userId: currentUser.id! })}>
+        <ThemedView style={styles.header}>
+          <ThemedText style={[styles.greeting, { color: textColor }]}>
+            Hola, {currentUser.first_name}!
+          </ThemedText>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('UserDetail', { userId: currentUser.id! })
+            }
+          >
             <Image source={{ uri: currentUser.avatar }} style={styles.profileImage} />
           </TouchableOpacity>
-        </View>
+        </ThemedView>
       )}
 
       <FlatList
@@ -139,7 +153,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     marginBottom: 10,
-    backgroundColor: '#f8f8f8',
     borderRadius: 12,
   },
   avatar: {
@@ -151,8 +164,13 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
   },
-  name: { fontSize: 16, fontWeight: '600' },
-  email: { fontSize: 14, color: '#666' },
+  name: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  email: {
+    fontSize: 14,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -160,13 +178,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingHorizontal: 4,
   },
-  
   greeting: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1E1E1E',
   },
-  
   profileImage: {
     width: 40,
     height: 40,

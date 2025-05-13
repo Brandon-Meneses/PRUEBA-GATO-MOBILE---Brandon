@@ -1,3 +1,4 @@
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
@@ -11,13 +12,21 @@ import UserStack from './UserStack';
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const bgColor = useThemeColor({}, 'background');
+  const activeColor = useThemeColor({}, 'tint');
+  const inactiveColor = useThemeColor({}, 'icon');
+  const buttonIconColor = useThemeColor({}, 'background'); 
+  const buttonBackgroundColor = useThemeColor({}, 'tint'); 
+
   return (
     <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: styles.tabBarStyle,
+          tabBarStyle: [styles.tabBarStyle, { backgroundColor: bgColor }],
           tabBarLabelStyle: { fontSize: 12 },
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: inactiveColor,
           tabBarIcon: ({ color, size }) => {
             let iconName = 'ellipse';
             switch (route.name) {
@@ -27,19 +36,15 @@ export default function TabNavigator() {
               case 'Notificaciones': iconName = 'notifications'; break;
             }
 
-            if (route.name === 'Notificaciones') {
-              return (
-                <View>
-                  <Ionicons name={iconName} size={size} color={color} />
-                  <View style={styles.notificationDot} />
-                </View>
-              );
-            }
-
-            return <Ionicons name={iconName} size={size} color={color} />;
+            return route.name === 'Notificaciones' ? (
+              <View>
+                <Ionicons name={iconName} size={size} color={color} />
+                <View style={styles.notificationDot} />
+              </View>
+            ) : (
+              <Ionicons name={iconName} size={size} color={color} />
+            );
           },
-          tabBarActiveTintColor: '#5E17EB',
-          tabBarInactiveTintColor: '#CBD2E0',
         })}
       >
         <Tab.Screen name="Inicio" component={UserStack} />
@@ -51,16 +56,12 @@ export default function TabNavigator() {
           options={{
             tabBarLabel: 'Registrar',
             tabBarIcon: () => (
-              <Ionicons name="add" size={28} color="#fff" />
+              <Ionicons name="add" size={28} color={buttonIconColor} />
             ),
             tabBarButton: (props) => (
-              <TouchableOpacity
-                {...props}
-                style={styles.centralButton}
-                activeOpacity={0.8}
-              >
-                <View style={styles.centralButtonInner}>
-                  <Ionicons name="add" size={28} color="#fff" />
+              <TouchableOpacity {...props} style={styles.centralButton} activeOpacity={0.8}>
+                <View style={[styles.centralButtonInner, { backgroundColor: buttonBackgroundColor }]}>
+                  <Ionicons name="add" size={28} color={buttonIconColor} />
                 </View>
               </TouchableOpacity>
             ),

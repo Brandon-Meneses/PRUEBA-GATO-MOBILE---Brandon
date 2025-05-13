@@ -1,3 +1,4 @@
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
@@ -25,19 +26,24 @@ const notifications = [
 ];
 
 export default function NotificationsScreen() {
+  const textColor = useThemeColor({}, 'text');
+  const cardColor = useThemeColor({}, 'background');
+  const iconColor = useThemeColor({}, 'tint');
+  const subtitleColor = useThemeColor({}, 'icon');
+
   const renderItem = ({ item }: any) => (
-    <View style={styles.card}>
-      <Ionicons name={item.icon} size={24} color="#5E17EB" style={{ marginRight: 12 }} />
+    <View style={[styles.card, { backgroundColor: cardColor }]}>
+      <Ionicons name={item.icon} size={24} color={iconColor} style={{ marginRight: 12 }} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.date}>{item.date}</Text>
+        <Text style={[styles.title, { color: textColor }]}>{item.title}</Text>
+        <Text style={[styles.date, { color: subtitleColor }]}>{item.date}</Text>
       </View>
     </View>
   );
 
   return (
     <ScreenContainer>
-      <Text style={styles.header}>Notificaciones</Text>
+      <Text style={[styles.header, { color: textColor }]}>Notificaciones</Text>
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
@@ -53,12 +59,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 16,
-    color: '#1E1E1E',
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F4FA',
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -69,6 +73,5 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 13,
-    color: '#888',
   },
 });

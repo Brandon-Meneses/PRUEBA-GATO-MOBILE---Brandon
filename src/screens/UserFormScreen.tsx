@@ -1,3 +1,5 @@
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,7 +10,6 @@ import {
   Button,
   Image,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -40,6 +41,11 @@ export default function UserFormScreen() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [secureEntry, setSecureEntry] = useState(true);
   const [secureRepeat, setSecureRepeat] = useState(true);
+
+  const backgroundColor = useThemeColor({}, 'background');
+  const inputBackground = useThemeColor({}, 'card');
+  const textColor = useThemeColor({}, 'text');
+  const labelColor = useThemeColor({}, 'icon');
 
   useEffect(() => {
     if (isEdit && userId) {
@@ -85,7 +91,7 @@ export default function UserFormScreen() {
       avatar: photo || 'https://via.placeholder.com/100',
       active: true,
     };
-    
+
     try {
       if (isEdit && userId) {
         await updateUser({ ...newUser, id: userId });
@@ -115,12 +121,67 @@ export default function UserFormScreen() {
         </TouchableOpacity>
       </View>
 
-      <CustomInput label="Nombres" icon="person" value={firstName} onChangeText={setFirstName} />
-      <CustomInput label="Apellidos" icon="person" value={lastName} onChangeText={setLastName} />
-      <CustomInput label="Correo" icon="mail" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <CustomInput label="DNI" icon="card" value={dni} onChangeText={setDni} keyboardType="numeric" />
-      <CustomInput label="Contraseña" icon="eye" value={password} onChangeText={setPassword} secureTextEntry={secureEntry} toggleSecure={() => setSecureEntry(!secureEntry)} />
-      <CustomInput label="Repetir Contraseña" icon="eye" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry={secureRepeat} toggleSecure={() => setSecureRepeat(!secureRepeat)} />
+      <CustomInput
+        label="Nombres"
+        icon="person"
+        value={firstName}
+        onChangeText={setFirstName}
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
+      <CustomInput
+        label="Apellidos"
+        icon="person"
+        value={lastName}
+        onChangeText={setLastName}
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
+      <CustomInput
+        label="Correo"
+        icon="mail"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
+      <CustomInput
+        label="DNI"
+        icon="card"
+        value={dni}
+        onChangeText={setDni}
+        keyboardType="numeric"
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
+      <CustomInput
+        label="Contraseña"
+        icon="eye"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry={secureEntry}
+        toggleSecure={() => setSecureEntry(!secureEntry)}
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
+      <CustomInput
+        label="Repetir Contraseña"
+        icon="eye"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry={secureRepeat}
+        toggleSecure={() => setSecureRepeat(!secureRepeat)}
+        backgroundColor={inputBackground}
+        labelColor={labelColor}
+        textColor={textColor}
+      />
 
       <View style={{ marginTop: 16 }}>
         <Button title="Guardar" onPress={handleSave} color="#5E17EB" />
@@ -129,12 +190,41 @@ export default function UserFormScreen() {
   );
 }
 
-function CustomInput({ label, icon, secureTextEntry, toggleSecure, ...props }: any) {
+type CustomInputProps = {
+  label: string;
+  icon: any;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
+  toggleSecure?: () => void;
+  keyboardType?: 'default' | 'email-address' | 'numeric';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  backgroundColor: string;
+  labelColor: string;
+  textColor: string;
+};
+
+function CustomInput({
+  label,
+  icon,
+  secureTextEntry,
+  toggleSecure,
+  backgroundColor,
+  labelColor,
+  textColor,
+  ...props
+}: CustomInputProps) {
   return (
     <View style={{ marginBottom: 12 }}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputContainer}>
-        <TextInput style={styles.input} placeholder={label} secureTextEntry={secureTextEntry} {...props} />
+      <ThemedText style={[styles.label, { color: labelColor }]}>{label}</ThemedText>
+      <View style={[styles.inputContainer, { backgroundColor }]}>
+        <TextInput
+          style={[styles.input, { color: textColor }]}
+          placeholder={label}
+          placeholderTextColor="#999"
+          secureTextEntry={secureTextEntry}
+          {...props}
+        />
         {toggleSecure ? (
           <TouchableOpacity onPress={toggleSecure}>
             <Ionicons name={secureTextEntry ? 'eye-off' : 'eye'} size={20} color="#999" />
@@ -168,10 +258,8 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 4,
-    color: '#333',
   },
   inputContainer: {
-    backgroundColor: '#F1F4FA',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,

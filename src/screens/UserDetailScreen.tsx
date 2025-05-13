@@ -1,3 +1,5 @@
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
@@ -7,7 +9,6 @@ import {
   Button,
   Image,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
@@ -31,10 +32,11 @@ export default function UserDetailScreen() {
   const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
 
+  const textColor = useThemeColor({}, 'text');
+  const subColor = useThemeColor({}, 'icon');
+
   useEffect(() => {
-    if (isFocused) {
-      loadUser();
-    }
+    if (isFocused) loadUser();
   }, [isFocused]);
 
   const loadUser = async () => {
@@ -73,7 +75,7 @@ export default function UserDetailScreen() {
   if (!user) {
     return (
       <ScreenContainer style={styles.container}>
-        <Text style={{ color: '#888' }}>Usuario no encontrado.</Text>
+        <ThemedText style={{ color: subColor }}>Usuario no encontrado.</ThemedText>
       </ScreenContainer>
     );
   }
@@ -81,19 +83,24 @@ export default function UserDetailScreen() {
   return (
     <ScreenContainer style={styles.container}>
       <Image source={{ uri: user.avatar }} style={styles.avatar} />
-      <Text style={styles.name}>{user.first_name + ' ' + user.last_name}</Text>
-      <Text style={styles.label}>Correo:</Text>
-      <Text style={styles.info}>{user.email}</Text>
-      <Text style={styles.label}>DNI:</Text>
-      <Text style={styles.info}>{user.dni}</Text>
-      <Text style={styles.label}>Estado:</Text>
+      <ThemedText style={[styles.name, { color: textColor }]}>
+        {user.first_name + ' ' + user.last_name}
+      </ThemedText>
+
+      <ThemedText style={[styles.label, { color: subColor }]}>Correo:</ThemedText>
+      <ThemedText style={[styles.info, { color: textColor }]}>{user.email}</ThemedText>
+
+      <ThemedText style={[styles.label, { color: subColor }]}>DNI:</ThemedText>
+      <ThemedText style={[styles.info, { color: textColor }]}>{user.dni}</ThemedText>
+
+      <ThemedText style={[styles.label, { color: subColor }]}>Estado:</ThemedText>
       <View style={styles.statusContainer}>
-        <Text style={[styles.statusIcon, { color: user.active ? 'green' : 'red' }]}>
+        <ThemedText style={[styles.statusIcon, { color: user.active ? 'green' : 'red' }]}>
           {user.active ? '🟢' : '🔴'}
-        </Text>
-        <Text style={[styles.info, { color: user.active ? 'green' : 'red', marginLeft: 6 }]}>
+        </ThemedText>
+        <ThemedText style={[styles.info, { color: user.active ? 'green' : 'red', marginLeft: 6 }]}>
           {user.active ? 'Activo' : 'Inactivo'}
-        </Text>
+        </ThemedText>
       </View>
 
       <View style={styles.buttonGroup}>
@@ -109,7 +116,7 @@ const styles = StyleSheet.create({
   container: { alignItems: 'center' },
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 16 },
   name: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
-  label: { fontSize: 14, marginTop: 8, color: '#888' },
+  label: { fontSize: 14, marginTop: 8 },
   info: { fontSize: 16 },
   buttonGroup: { marginTop: 24, width: '80%' },
   statusContainer: {
