@@ -40,7 +40,10 @@ export default function UserStack() {
       <Stack.Screen
         name="UserForm"
         component={UserFormScreen}
-        options={{ headerShown: true, title: 'Formulario' }}
+        options={({ route }) => ({
+          headerShown: true,
+          title: route.params?.userId ? 'Editar usuario' : 'Nuevo usuario',
+        })}
       />
     </Stack.Navigator>
   );

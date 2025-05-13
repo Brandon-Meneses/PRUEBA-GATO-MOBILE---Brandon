@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CalendarScreen from '../screens/CalendarScreen';
 import DocumentsScreen from '../screens/DocumentsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
-import UserFormScreen from '../screens/UserFormScreen';
 import UserStack from './UserStack';
 
 const Tab = createBottomTabNavigator();
@@ -47,7 +46,8 @@ export default function TabNavigator() {
         <Tab.Screen name="Calendario" component={CalendarScreen} />
         <Tab.Screen
           name="Marcar"
-          component={UserFormScreen}
+          component={UserStack}
+          initialParams={{ screen: 'UserForm' }}
           options={{
             tabBarLabel: 'Registrar',
             tabBarIcon: () => (
