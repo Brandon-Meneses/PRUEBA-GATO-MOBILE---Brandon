@@ -105,7 +105,9 @@ export default function UserListScreen() {
       {currentUser && (
         <View style={styles.header}>
           <Text style={styles.greeting}>Hola, {currentUser.first_name}!</Text>
-          <Image source={{ uri: currentUser.avatar }} style={styles.profileImage} />
+          <TouchableOpacity onPress={() => navigation.navigate('UserDetail', { userId: currentUser.id! })}>
+            <Image source={{ uri: currentUser.avatar }} style={styles.profileImage} />
+          </TouchableOpacity>
         </View>
       )}
 

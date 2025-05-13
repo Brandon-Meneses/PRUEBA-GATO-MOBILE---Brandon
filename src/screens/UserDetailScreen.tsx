@@ -86,6 +86,15 @@ export default function UserDetailScreen() {
       <Text style={styles.info}>{user.email}</Text>
       <Text style={styles.label}>DNI:</Text>
       <Text style={styles.info}>{user.dni}</Text>
+      <Text style={styles.label}>Estado:</Text>
+      <View style={styles.statusContainer}>
+        <Text style={[styles.statusIcon, { color: user.active ? 'green' : 'red' }]}>
+          {user.active ? '🟢' : '🔴'}
+        </Text>
+        <Text style={[styles.info, { color: user.active ? 'green' : 'red', marginLeft: 6 }]}>
+          {user.active ? 'Activo' : 'Inactivo'}
+        </Text>
+      </View>
 
       <View style={styles.buttonGroup}>
         <Button title="Editar" onPress={() => navigation.navigate('UserForm', { userId })} />
@@ -103,4 +112,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, marginTop: 8, color: '#888' },
   info: { fontSize: 16 },
   buttonGroup: { marginTop: 24, width: '80%' },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  statusIcon: {
+    fontSize: 18,
+  },
 });
