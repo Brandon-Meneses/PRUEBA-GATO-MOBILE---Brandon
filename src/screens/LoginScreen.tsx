@@ -31,7 +31,7 @@ export default function LoginScreen() {
     try {
       const response = await api.post('/login', { email, password });
       const token = response.data.token;
-      await login(token);
+      await login(token, email);
     } catch (error: any) {
       const message = error.response?.data?.error || 'Error desconocido';
       Alert.alert('Error', message);

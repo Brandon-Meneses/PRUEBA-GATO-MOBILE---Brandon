@@ -4,51 +4,58 @@ import { ActivityIndicator, View } from 'react-native';
 
 type AuthContextType = {
   token: string | null;
-  login: (token: string) => void;
+  email: string | null;
+  login: (token: string, email: string) => void;
   logout: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   token: null,
+  email: null,
   login: () => {},
   logout: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadToken = async () => {
+    const loadSession = async () => {
       try {
         const storedToken = await SecureStore.getItemAsync('userToken');
-        if (storedToken) {
-          setToken(storedToken);
-        }
+        const storedEmail = await SecureStore.getItemAsync('userEmail');
+        if (storedToken) setToken(storedToken);
+        if (storedEmail) setEmail(storedEmail);
       } catch (error) {
-        console.error('Error al cargar el token:', error);
+        console.error('Error al cargar sesión:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadToken();
+    loadSession();
   }, []);
 
-  const login = async (newToken: string) => {
+  const login = async (newToken: string, userEmail: string) => {
     try {
       await SecureStore.setItemAsync('userToken', newToken);
+      await SecureStore.setItemAsync('userEmail', userEmail);
       setToken(newToken);
+      setEmail(userEmail);
     } catch (error) {
-      console.error('Error al guardar el token:', error);
+      console.error('Error al guardar sesión:', error);
     }
   };
 
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync('userToken');
+      await SecureStore.deleteItemAsync('userEmail');
       setToken(null);
+      setEmail(null);
     } catch (error) {
-      console.error('Error al eliminar el token:', error);
+      console.error('Error al cerrar sesión:', error);
     }
   };
 
@@ -61,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, email, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

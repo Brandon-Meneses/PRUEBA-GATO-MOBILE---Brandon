@@ -31,7 +31,8 @@ interface User {
 export default function UserListScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const navigation = useNavigation<NavigationProp>();
-  const { logout } = useContext(AuthContext);
+  const { logout, email: loggedInEmail } = useContext(AuthContext);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -45,6 +46,8 @@ export default function UserListScreen() {
         active: true,
       }));
       setUsers(dataWithStatus);
+      const matchedUser = dataWithStatus.find((u: User) => u.email === loggedInEmail);
+      if (matchedUser) setCurrentUser(matchedUser);
     } catch (error: any) {
       console.error('Error al obtener usuarios:', error.response?.data || error.message);
     }
@@ -81,6 +84,18 @@ export default function UserListScreen() {
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
+
+      {currentUser && (
+        <View style={styles.header}>
+          <Text style={styles.greeting}>
+            Hola, {currentUser.first_name}!
+          </Text>
+          <Image
+            source={{ uri: currentUser.avatar }}
+            style={styles.profileImage}
+          />
+        </View>
+      )}
 
       <FlatList
         data={users}
@@ -124,4 +139,23 @@ const styles = StyleSheet.create({
   },
   name: { fontSize: 16, fontWeight: '600' },
   email: { fontSize: 14, color: '#666' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  
+  greeting: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E1E1E',
+  },
+  
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
 });
