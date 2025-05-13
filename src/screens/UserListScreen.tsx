@@ -14,6 +14,7 @@ import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
 import {
   User as DBUser,
+  getUserByEmail,
   getUsers,
   insertUser,
   toggleUserStatus
@@ -37,42 +38,41 @@ export default function UserListScreen() {
       }
     }, [isFocused]);
 
-  const loadData = async () => {
-    const localUsers = await getUsers();
-
-    if (localUsers.length === 0) {
-      // Primer inicio, cargar desde API y guardar en BD
+    const loadData = async () => {
       try {
         const response = await api.get('/users?page=1');
-        const dataFromAPI = response.data.data;
-
-        for (const user of dataFromAPI) {
-          const userToSave: DBUser = {
-            id: user.id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            avatar: user.avatar,
-            dni: '00000000',
-            active: true,
-          };
-          await insertUser(userToSave);
+        const apiUsers = response.data.data;
+    
+        for (const user of apiUsers) {
+          const exists = await getUserByEmail(user.email);
+          if (!exists) {
+            await insertUser({
+              id: user.id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email: user.email,
+              avatar: user.avatar,
+              dni: '00000000',
+              active: true,
+            });
+          }
         }
-
-        const savedUsers = await getUsers();
-        setUsers(savedUsers);
-        const matched = savedUsers.find(u => u.email === loggedInEmail);
+    
+        const updatedUsers = await getUsers();
+        setUsers(updatedUsers);
+    
+        const matched = updatedUsers.find(u => u.email === loggedInEmail);
         if (matched) setCurrentUser(matched);
       } catch (error: any) {
         console.error('Error al obtener usuarios de la API:', error.message);
+    
+        // Si falla, usa la base local
+        const fallbackUsers = await getUsers();
+        setUsers(fallbackUsers);
+        const matched = fallbackUsers.find(u => u.email === loggedInEmail);
+        if (matched) setCurrentUser(matched);
       }
-    } else {
-      // Ya hay datos locales
-      setUsers(localUsers);
-      const matched = localUsers.find(u => u.email === loggedInEmail);
-      if (matched) setCurrentUser(matched);
-    }
-  };
+    };
 
   const handleToggleActive = async (id: number, currentStatus: boolean) => {
     await toggleUserStatus(id, !currentStatus);

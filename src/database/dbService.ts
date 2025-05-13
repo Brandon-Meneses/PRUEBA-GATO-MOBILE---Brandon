@@ -12,6 +12,8 @@ export type User = {
 
 export const insertUser = async (user: User): Promise<void> => {
   try {
+    const safeDni = user.dni?.trim() || '00000000';
+
     await db.runAsync(
       `INSERT OR REPLACE INTO users (id, first_name, last_name, email, dni, active, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -19,7 +21,7 @@ export const insertUser = async (user: User): Promise<void> => {
         user.first_name,
         user.last_name,
         user.email,
-        user.dni,
+        safeDni,
         user.active ? 1 : 0,
         user.avatar || '',
       ]

@@ -12,8 +12,8 @@ export default function ScreenScrollContainer({ children }: { children: React.Re
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        behavior="padding" 
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 24} 
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
