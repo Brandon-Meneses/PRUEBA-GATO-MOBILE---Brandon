@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useContext, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +13,7 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { AuthContext } from '../context/AuthContext';
 import { getUserByEmail, insertUser } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -40,7 +40,11 @@ export default function LoginScreen() {
         const matchedUser = apiResponse.data.data.find((u: any) => u.email === email);
   
         if (!matchedUser) {
-          Alert.alert('Error', 'No se encontró el usuario en la API.');
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'No se encontró el usuario en la API.',
+          });
           return;
         }
   
@@ -58,7 +62,11 @@ export default function LoginScreen() {
       }
   
       if (!localUser) {
-        Alert.alert('Error', 'No se encontró el usuario local.');
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'No se encontró el usuario local.',
+        });
         return;
       }
   
@@ -68,19 +76,34 @@ export default function LoginScreen() {
         avatar: localUser.avatar ?? '',
       });
   
-    } catch (error: any) {
-      console.error('Login error:', error.response?.data || error.message);
+      Toast.show({
+        type: 'success',
+        text1: 'Bienvenido',
+        text2: `${localUser.first_name} ${localUser.last_name}`,
+      });
   
+    } catch (error: any) {
       const localUser = await getUserByEmail(email);
+  
       if (localUser) {
         await login('offline-token', email, {
           id: localUser.id ?? 0,
           name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
           avatar: localUser.avatar ?? '',
         });
+  
+        Toast.show({
+          type: 'success',
+          text1: 'Modo sin conexión',
+          text2: `Sesión iniciada como ${localUser.first_name}`,
+        });
       } else {
-        const message = error.response?.data?.error || 'Error desconocido';
-        Alert.alert('Error', message);
+        const message = error.response?.data?.error || 'No se pudo iniciar sesión';
+        Toast.show({
+          type: 'error',
+          text1: 'Error de autenticación',
+          text2: message,
+        });
       }
     }
   };
