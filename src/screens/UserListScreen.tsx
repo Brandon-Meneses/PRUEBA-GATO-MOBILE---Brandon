@@ -12,6 +12,7 @@ import {
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import Toast from 'react-native-toast-message';
 import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
 import {
@@ -50,6 +51,12 @@ export default function UserListScreen() {
     await toggleUserStatus(id, !currentStatus);
     const updated = await getUsers();
     setUsers(updated);
+  
+    Toast.show({
+      type: 'success',
+      text1: 'Estado actualizado',
+      text2: `El usuario fue marcado como ${!currentStatus ? 'activo' : 'inactivo'}`,
+    });
   };
 
   const renderItem = ({ item }: { item: DBUser }) => (
