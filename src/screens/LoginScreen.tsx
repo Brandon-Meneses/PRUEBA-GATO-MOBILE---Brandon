@@ -10,13 +10,15 @@ import {
   TextInput,
   TouchableOpacity
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import ThemeSelector from '../components/ThemeSelector';
 import { AuthContext } from '../context/AuthContext';
+import { useThemeSettings } from '../context/ThemeContext';
 import { getUserByEmail, insertUser } from '../database/dbService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import api from '../services/api';
@@ -33,6 +35,10 @@ export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
   const inputBg = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'icon');
+  const { theme, setTheme } = useThemeSettings();
+  const insets = useSafeAreaInsets();
+
 
   const handleLogin = async () => {
     try {
@@ -120,6 +126,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor }}>
+      <ThemedView style={[styles.themeSelectorWrapper, { top: insets.top + 8 }]}>
+        <ThemeSelector />
+      </ThemedView>
+  
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
@@ -128,15 +138,18 @@ export default function LoginScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <ThemedText type="title" style={styles.title}>Iniciar Sesión</ThemedText>
+          <ThemedText type="title" style={styles.title}>
+            Iniciar Sesión
+          </ThemedText>
+  
           <ThemedText style={styles.subtitle}>
             Nos alegra verte de vuelta. Ingresa con tu cuenta para continuar tu experiencia.
           </ThemedText>
-
-          {/* Input Correo */}
+  
+          {/* Email */}
           <ThemedView style={styles.inputWrapper}>
             <TextInput
-              style={[styles.input, { backgroundColor: inputBg, color: textColor }]}
+              style={[styles.input, { backgroundColor: inputBg, color: textColor, borderColor }]}
               placeholder="Correo"
               placeholderTextColor="#999"
               keyboardType="email-address"
@@ -146,11 +159,11 @@ export default function LoginScreen() {
             />
             <Ionicons name="mail-outline" size={20} color="#999" style={styles.iconRight} />
           </ThemedView>
-
-          {/* Input Contraseña */}
+  
+          {/* Contraseña */}
           <ThemedView style={styles.inputWrapper}>
             <TextInput
-              style={[styles.input, { backgroundColor: inputBg, color: textColor }]}
+              style={[styles.input, { backgroundColor: inputBg, color: textColor, borderColor }]}
               placeholder="Contraseña"
               placeholderTextColor="#999"
               secureTextEntry={!showPassword}
@@ -161,15 +174,15 @@ export default function LoginScreen() {
               <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#999" />
             </TouchableOpacity>
           </ThemedView>
-
+  
           <TouchableOpacity style={styles.forgotContainer}>
             <ThemedText type="link">¿Olvidé mi contraseña?</ThemedText>
           </TouchableOpacity>
-
+  
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
             <ThemedText style={styles.loginButtonText}>Ingresar</ThemedText>
           </TouchableOpacity>
-
+  
           <ThemedText style={styles.registerText}>
             ¿Aún no tienes una cuenta?{' '}
             <ThemedText style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
@@ -185,8 +198,14 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
+    paddingTop: 40, 
     flexGrow: 1,
     justifyContent: 'center',
+  },
+  themeSelectorWrapper: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
   },
   title: {
     marginBottom: 8,
@@ -205,6 +224,7 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingRight: 40,
     fontSize: 14,
+    borderWidth: 1.5,
   },
   iconRight: {
     position: 'absolute',
