@@ -111,10 +111,17 @@ export default function UserFormScreen() {
     <ScreenScrollContainer>
       <View style={styles.avatarContainer}>
         <TouchableOpacity onPress={pickImage}>
-          <Image
-            source={{ uri: photo || 'https://via.placeholder.com/100' }}
-            style={styles.avatar}
-          />
+          {photo ? (
+            <>
+              <Image source={{ uri: photo }} style={styles.avatar} />
+            </>
+          ) : (
+            <View style={styles.placeholderAvatar}>
+              <Ionicons name="camera" size={24} color="#999" style={{ marginBottom: 6 }} />
+              <ThemedText style={styles.placeholderText}>Subir imagen</ThemedText>
+            </View>
+          )}
+          {/* Ícono morado siempre visible */}
           <View style={styles.iconOverlay}>
             <Ionicons name="image" size={20} color="#fff" />
           </View>
@@ -214,23 +221,34 @@ function CustomInput({
   textColor,
   ...props
 }: CustomInputProps) {
+  const placeholderColor = useThemeColor({}, 'icon'); // gris adaptativo
+
   return (
     <View style={{ marginBottom: 12 }}>
       <ThemedText style={[styles.label, { color: labelColor }]}>{label}</ThemedText>
-      <View style={[styles.inputContainer, { backgroundColor }]}>
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            backgroundColor,
+            borderColor: placeholderColor,
+            borderWidth: 1, // Borde sutil
+          },
+        ]}
+      >
         <TextInput
           style={[styles.input, { color: textColor }]}
           placeholder={label}
-          placeholderTextColor="#999"
+          placeholderTextColor={placeholderColor}
           secureTextEntry={secureTextEntry}
           {...props}
         />
         {toggleSecure ? (
           <TouchableOpacity onPress={toggleSecure}>
-            <Ionicons name={secureTextEntry ? 'eye-off' : 'eye'} size={20} color="#999" />
+            <Ionicons name={secureTextEntry ? 'eye-off' : 'eye'} size={20} color={placeholderColor} />
           </TouchableOpacity>
         ) : (
-          <Ionicons name={icon} size={20} color="#999" />
+          <Ionicons name={icon} size={20} color={placeholderColor} />
         )}
       </View>
     </View>
@@ -270,4 +288,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
   },
+  placeholderAvatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  placeholderText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+  
+
 });
