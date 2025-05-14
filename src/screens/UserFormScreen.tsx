@@ -227,7 +227,7 @@ function CustomInput({
   textColor,
   ...props
 }: CustomInputProps) {
-  const placeholderColor = useThemeColor({}, 'icon'); // gris adaptativo
+  const placeholderColor = useThemeColor({}, 'icon'); 
 
   return (
     <View style={{ marginBottom: 12 }}>
