@@ -78,20 +78,26 @@ export default function UserFormScreen() {
       Alert.alert('Error', 'Todos los campos son obligatorios.');
       return;
     }
+  
+    if (!photo) {
+      Alert.alert('Error', 'Debes subir una imagen para continuar.');
+      return;
+    }
+  
     if (password && password !== confirmPassword) {
       Alert.alert('Error', 'Las contraseñas no coinciden.');
       return;
     }
-
+  
     const newUser = {
       first_name: firstName,
       last_name: lastName,
       email,
       dni,
-      avatar: photo || 'https://via.placeholder.com/100',
+      avatar: photo,
       active: true,
     };
-
+  
     try {
       if (isEdit && userId) {
         await updateUser({ ...newUser, id: userId });
@@ -302,6 +308,4 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  
-
 });
