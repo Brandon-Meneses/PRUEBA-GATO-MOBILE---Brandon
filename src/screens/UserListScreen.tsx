@@ -16,13 +16,10 @@ import ScreenContainer from '../components/ScreenContainer';
 import { AuthContext } from '../context/AuthContext';
 import {
   User as DBUser,
-  getUserByEmail,
   getUsers,
-  insertUser,
   toggleUserStatus
 } from '../database/dbService';
 import { UserStackParamList } from '../navigation/UserStack';
-import api from '../services/api';
 
 type NavigationProp = NativeStackNavigationProp<UserStackParamList, 'UserList'>;
 
@@ -42,37 +39,11 @@ export default function UserListScreen() {
   }, [isFocused]);
 
   const loadData = async () => {
-    try {
-      const response = await api.get('/users?page=1');
-      const apiUsers = response.data.data;
-
-      for (const user of apiUsers) {
-        const exists = await getUserByEmail(user.email);
-        if (!exists) {
-          await insertUser({
-            id: user.id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            avatar: user.avatar,
-            dni: '00000000',
-            active: true,
-          });
-        }
-      }
-
-      const updatedUsers = await getUsers();
-      setUsers(updatedUsers);
-
-      const matched = updatedUsers.find(u => u.email === loggedInEmail);
-      if (matched) setCurrentUser(matched);
-    } catch (error: any) {
-      console.error('Error al obtener usuarios de la API:', error.message);
-      const fallbackUsers = await getUsers();
-      setUsers(fallbackUsers);
-      const matched = fallbackUsers.find(u => u.email === loggedInEmail);
-      if (matched) setCurrentUser(matched);
-    }
+    const localUsers = await getUsers();
+    setUsers(localUsers);
+  
+    const matched = localUsers.find(u => u.email === loggedInEmail);
+    if (matched) setCurrentUser(matched);
   };
 
   const handleToggleActive = async (id: number, currentStatus: boolean) => {

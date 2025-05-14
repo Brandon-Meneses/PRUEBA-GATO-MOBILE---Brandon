@@ -38,35 +38,39 @@ export default function LoginScreen() {
     try {
       const response = await api.post('/login', { email, password });
       const token = response.data.token;
-
-      let localUser = await getUserByEmail(email);
-
-      if (!localUser) {
-        const apiResponse = await api.get('/users?page=1');
-        const matchedUser = apiResponse.data.data.find((u: any) => u.email === email);
-
-        if (!matchedUser) {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'No se encontró el usuario en la API.',
+  
+      const apiResponse = await api.get('/users?page=1');
+      const allApiUsers = apiResponse.data.data;
+  
+      let matchedUser = null;
+  
+      for (const user of allApiUsers) {
+        if (user.email === email) matchedUser = user;
+  
+        const exists = await getUserByEmail(user.email);
+        if (!exists) {
+          await insertUser({
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            dni: '00000000',
+            active: true,
+            avatar: user.avatar || '',
           });
-          return;
         }
-
-        await insertUser({
-          id: matchedUser.id,
-          first_name: matchedUser.first_name,
-          last_name: matchedUser.last_name,
-          email: matchedUser.email,
-          dni: '00000000',
-          active: true,
-          avatar: matchedUser.avatar || '',
-        });
-
-        localUser = await getUserByEmail(email);
       }
-
+  
+      if (!matchedUser) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'No se encontró el usuario en la API.',
+        });
+        return;
+      }
+  
+      const localUser = await getUserByEmail(email);
       if (!localUser) {
         Toast.show({
           type: 'error',
@@ -75,29 +79,29 @@ export default function LoginScreen() {
         });
         return;
       }
-
+  
       await login(token, email, {
         id: localUser.id ?? 0,
         name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
         avatar: localUser.avatar ?? '',
       });
-
+  
       Toast.show({
         type: 'success',
         text1: 'Bienvenido',
         text2: `${localUser.first_name} ${localUser.last_name}`,
       });
-
+  
     } catch (error: any) {
       const localUser = await getUserByEmail(email);
-
+  
       if (localUser) {
         await login('offline-token', email, {
           id: localUser.id ?? 0,
           name: `${localUser.first_name ?? ''} ${localUser.last_name ?? ''}`,
           avatar: localUser.avatar ?? '',
         });
-
+  
         Toast.show({
           type: 'success',
           text1: 'Modo sin conexión',
@@ -167,7 +171,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <ThemedText style={styles.registerText}>
-            ¿Aún no tienes una cuenta? <ThemedText style={styles.registerLink}>Regístrate</ThemedText>
+            ¿Aún no tienes una cuenta?{' '}
+            <ThemedText style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
+              Regístrate
+            </ThemedText>
           </ThemedText>
         </ScrollView>
       </KeyboardAvoidingView>
